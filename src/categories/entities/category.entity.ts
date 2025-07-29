@@ -1,22 +1,20 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToMany } from 'typeorm';
 import { Part } from '../../parts/entities/part.entity';
 
-@Entity('categories')
+@Entity()
 export class Category {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  name: string;
+  @Column({ type: 'jsonb', default: {} })
+  translations: {
+    en: { name: string; description?: string };
+    ru: { name: string; description?: string };
+  };
 
   @Column({ nullable: true })
-  description: string;
-
-  @Column({ nullable: true })
-  imageUrl: string;
+  imageUrl?: string;
 
   @ManyToMany(() => Part, (part) => part.categories)
-  @JoinTable()
   parts: Part[];
 }
-

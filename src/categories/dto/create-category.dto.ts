@@ -1,19 +1,17 @@
-import { IsString, IsOptional, IsArray, IsNotEmpty, IsUrl } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsArray } from 'class-validator';
 
 export class CreateCategoryDto {
-  @IsString()
   @IsNotEmpty()
-  name: string;
+  translations: {
+    en: { name: string; description?: string };
+    ru: { name: string; description?: string };
+  };
 
   @IsString()
-  @IsOptional()
-  description?: string;
-
-  @IsUrl()
   @IsOptional()
   imageUrl?: string;
 
   @IsArray()
   @IsOptional()
-  parts?: number[]; // parts as an array of IDs
+  parts?: number[];
 }

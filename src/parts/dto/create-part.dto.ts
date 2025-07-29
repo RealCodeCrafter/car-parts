@@ -1,42 +1,27 @@
-import { IsString, IsNumber, IsNotEmpty, IsOptional, IsArray } from 'class-validator';
-import { Category } from '../../categories/entities/category.entity';
+import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsArray, IsNumber } from 'class-validator';
 
 export class CreatePartDto {
   @IsString()
   @IsNotEmpty()
   sku: string;
 
-  @IsString()
   @IsNotEmpty()
-  name: string;
-
-  @IsString()
-  @IsOptional()
-  visibilityInCatalog?: string;
+  translations: {
+    en: { name: string; shortDescription?: string; description?: string };
+    ru: { name: string; shortDescription?: string; description?: string };
+  };
 
   @IsString()
   @IsNotEmpty()
-  language: string;
-
-  @IsNumber()
-  @IsOptional()
-  translationGroup?: number;
-
+  visibilityInCatalog: string;
+  
   @IsString()
   @IsOptional()
-  shortDescription?: string;
+  translationGroup?: string;
 
-  @IsString()
+  @IsBoolean()
   @IsOptional()
-  description?: string;
-
-  @IsNotEmpty()
-  inStock: boolean;
-
-  // Kategoriyalarni faqat id larini qabul qilish
-  @IsArray()
-  @IsOptional()
-  categories: number[];  // Category id array
+  inStock?: boolean;
 
   @IsArray()
   @IsOptional()
@@ -59,18 +44,22 @@ export class CreatePartDto {
   years?: string;
 
   @IsNumber()
-  @IsOptional()
-  price?: number;
+  @IsNotEmpty()
+  price: number;
 
   @IsString()
   @IsOptional()
   imageUrl?: string;
 
   @IsString()
-  @IsOptional()
-  trtCode?: string;
+  @IsNotEmpty()
+  trtCode: string;
 
   @IsString()
+  @IsNotEmpty()
+  brand: string;
+
+  @IsArray()
   @IsOptional()
-  brand?: string;
+  categories?: number[];
 }

@@ -1,13 +1,15 @@
-import { IsString, IsNumber, IsOptional, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsArray, IsNumber } from 'class-validator';
 
 export class UpdatePartDto {
   @IsString()
   @IsOptional()
   sku?: string;
 
-  @IsString()
   @IsOptional()
-  name?: string;
+  translations?: {
+    en: { name?: string; shortDescription?: string; description?: string };
+    ru: { name?: string; shortDescription?: string; description?: string };
+  };
 
   @IsString()
   @IsOptional()
@@ -15,27 +17,11 @@ export class UpdatePartDto {
 
   @IsString()
   @IsOptional()
-  language?: string; 
+  translationGroup?: string;
 
-  @IsNumber()
+  @IsBoolean()
   @IsOptional()
-  translationGroup?: number;
-
-  @IsString()
-  @IsOptional()
-  shortDescription?: string;
-
-  @IsString()
-  @IsOptional()
-  description?: string; 
-
-  @IsOptional()
-  inStock?: boolean; 
-
-  @IsArray()
-  @IsOptional()
-  categories?: number[];  // Category id array
-
+  inStock?: boolean;
 
   @IsArray()
   @IsOptional()
@@ -47,15 +33,15 @@ export class UpdatePartDto {
 
   @IsArray()
   @IsOptional()
-  model?: string[]; 
+  model?: string[];
 
   @IsArray()
   @IsOptional()
-  oem?: string[]; 
+  oem?: string[];
 
   @IsString()
   @IsOptional()
-  years?: string; 
+  years?: string;
 
   @IsNumber()
   @IsOptional()
@@ -63,8 +49,8 @@ export class UpdatePartDto {
 
   @IsString()
   @IsOptional()
-  imageUrl?: string; 
-  
+  imageUrl?: string;
+
   @IsString()
   @IsOptional()
   trtCode?: string;
@@ -72,4 +58,8 @@ export class UpdatePartDto {
   @IsString()
   @IsOptional()
   brand?: string;
+
+  @IsArray()
+  @IsOptional()
+  categories?: number[];
 }

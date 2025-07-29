@@ -1,7 +1,7 @@
-import { Category } from 'src/categories/entities/category.entity';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, JoinTable } from 'typeorm';
+import { Category } from '../../categories/entities/category.entity';
 
-@Entity('products')
+@Entity()
 export class Part {
   @PrimaryGeneratedColumn()
   id: number;
@@ -9,54 +9,49 @@ export class Part {
   @Column()
   sku: string;
 
-  @Column()
-  name: string;
+  @Column({ type: 'jsonb', default: {} })
+  translations: {
+    en: { name: string; shortDescription?: string; description?: string };
+    ru: { name: string; shortDescription?: string; description?: string };
+  };
 
-  @Column({ nullable: true })
+  @Column()
   visibilityInCatalog: string;
 
-  @Column()
-  language: string;
-
   @Column({ nullable: true })
-  translationGroup: number;
-
-  @Column({ nullable: true })
-  shortDescription: string;
-
-  @Column({ nullable: true })
-  description: string; 
+  translationGroup?: string;
 
   @Column({ default: true })
   inStock: boolean;
 
-  @ManyToMany(() => Category, (category) => category.parts, {onDelete: "CASCADE"})
-  categories: Category[];
-
-   @Column('simple-array', { nullable: true })
-   images: string[]; 
+  @Column('text', { array: true, nullable: true })
+  images?: string[];
 
   @Column({ nullable: true })
-  carName: string;
+  carName?: string;
 
-  @Column("simple-array",{ nullable: true })
-  model: string[]; 
+  @Column('text', { array: true, nullable: true })
+  model?: string[];
 
-  @Column("simple-array",{ nullable: true })
-  oem: string[];
+  @Column('text', { array: true, nullable: true })
+  oem?: string[];
 
   @Column({ nullable: true })
-  years: string;
-  
-  @Column({ nullable: true })
+  years?: string;
+
+  @Column('float')
   price: number;
 
   @Column({ nullable: true })
-  imageUrl: string; 
+  imageUrl?: string;
 
-  @Column({ nullable: true })
+  @Column()
   trtCode: string;
 
-  @Column({ nullable: true })
+  @Column()
   brand: string;
+
+  @ManyToMany(() => Category, (category) => category.parts, { cascade: true })
+  @JoinTable()
+  categories: Category[];
 }

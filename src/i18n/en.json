@@ -1,0 +1,54 @@
+{
+    "auth": {
+        "user_exists": "Username already exists!",
+        "user_not_found": "User not found!",
+        "invalid_password": "Invalid password!",
+        "admin_exists": "Admin with this username already exists!",
+        "admin_error": "Failed to create admin!",
+        "token_missing": "Authorization token is missing!",
+        "invalid_token": "Invalid token!",
+        "no_permission": "You do not have permission to perform this action!",
+        "register_success": "User registered successfully!",
+        "login_success": "User logged in successfully!",
+        "admin_success": "Admin created successfully!"
+    },
+    "categories": {
+        "category_exists": "Category with name {name} already exists!",
+        "category_not_found": "Category with ID {id} not found!",
+        "no_categories": "No categories found!",
+        "category_delete_success": "Category deleted successfully!",
+        "category_delete_error": "Failed to delete category!"
+    },
+    "parts": {
+        "part_exists": "Part with TRT code {trtCode} already exists!",
+        "part_not_found": "Part with ID {id} not found!",
+        "no_parts": "No parts found!",
+        "part_add_error": "Failed to add part!",
+        "part_delete_success": "Part deleted successfully!",
+        "category_not_found": "Category not found!",
+        "image_not_uploaded": "Image not uploaded!",
+        "image_uploaded": "Image uploaded successfully!",
+        "image_not_found": "Image not found!"
+    },
+    "contact": {
+        "title": "Contact Us",
+        "contacts": "Our Contacts",
+        "description": "Get in touch with us for any inquiries.",
+        "phone_label": "Phone",
+        "phone": "+1234567890",
+        "email": "support@example.com",
+        "address": "123 Main St, City, Country",
+        "form_title": "Send Us a Message",
+        "name_label": "Name",
+        "phone_label_form": "Phone",
+        "comment_label": "Comment",
+        "submit_button": "Send",
+        "data_processing_consent": "By submitting, you consent to the processing of your personal data.",
+        "message_sent": "Message sent successfully!",
+        "message_error": "Failed to send message!",
+        "email_subject": "New Contact Form Submission"
+    },
+    "test": {
+        "hello": "Hello World!"
+    }
+}

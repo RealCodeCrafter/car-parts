@@ -5,17 +5,19 @@ import * as cors from 'cors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe({ 
-    transform: true, 
-    whitelist: true, 
-    forbidNonWhitelisted: true,
-  }));
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   app.use(cors({
-    origin: "*",
+    origin: '*',
     credentials: true,
   }));
-
-  await app.listen(7000, "0.0.0.0");
+  await app.listen(7000, '0.0.0.0');
 }
 bootstrap();
