@@ -27,13 +27,17 @@ import { ContactModule } from './contact/contact.module';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
+      host: 'nozomi.proxy.rlwy.net',
+      port: 43482,
       username: 'postgres',
-      password: '1234',
-      database: 'carpar',
+      password: 'RsGzZbKHlZwrLakJWmsKolSNEXwUgZVU',
+      database: 'railway',
       entities: [Part, User, Category],
       synchronize: true,
+      autoLoadEntities: true,
+      ssl: {
+        rejectUnauthorized: false
+      },
     }),
     I18nModule.forRoot({
       fallbackLanguage: 'en',
