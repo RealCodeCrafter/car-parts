@@ -7,6 +7,7 @@ import {
   I18nJsonLoader,
   HeaderResolver,
   QueryResolver,
+  AcceptLanguageResolver,
 } from 'nestjs-i18n';
 import * as path from 'path';
 
@@ -47,6 +48,7 @@ import { ContactModule } from './contact/contact.module';
         watch: true,
       },
       resolvers: [
+        AcceptLanguageResolver,
         { use: QueryResolver, options: ['lang'] },
         { use: HeaderResolver, options: ['accept-language'] },
       ],
