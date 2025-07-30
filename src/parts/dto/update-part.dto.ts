@@ -15,9 +15,9 @@ export class UpdatePartDto {
   @IsOptional()
   images?: string[];
 
-  @IsString()
+  @IsArray()
   @IsOptional()
-  carName?: string;
+  carName?: string[];
 
   @IsArray()
   @IsOptional()

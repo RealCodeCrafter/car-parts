@@ -18,8 +18,8 @@ export class Part {
   @Column('text', { array: true, nullable: true })
   images?: string[];
 
-  @Column({ nullable: true })
-  carName?: string;
+  @Column('text', { array: true, nullable: true })
+  carName?: string[];
 
   @Column('text', { array: true, nullable: true })
   model?: string[];
