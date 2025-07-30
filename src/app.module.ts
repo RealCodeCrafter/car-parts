@@ -2,14 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-import {
-  I18nModule,
-  I18nJsonLoader,
-  HeaderResolver,
-  QueryResolver,
-  AcceptLanguageResolver,
-} from 'nestjs-i18n';
-import * as path from 'path';
 
 import { Part } from './parts/entities/part.entity';
 import { User } from './auth/entities/auth.entity';
@@ -39,18 +31,6 @@ import { ContactModule } from './contact/contact.module';
       ssl: {
         rejectUnauthorized: false
       },
-    }),
-    I18nModule.forRoot({
-  fallbackLanguage: 'en',
-  loader: I18nJsonLoader,
-  loaderOptions: {
-    path: path.join(__dirname, '../src/i18n'),
-    watch: true,
-  },
-  resolvers: [
-    { use: QueryResolver, options: ['lang'] },
-    { use: HeaderResolver, options: ['accept-language'] },
-  ],
     }),
     PartsModule,
     AuthModule,

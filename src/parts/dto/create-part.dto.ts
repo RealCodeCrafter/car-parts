@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsArray, IsNumber } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsArray } from 'class-validator';
 
 export class CreatePartDto {
   @IsString()
@@ -7,21 +7,9 @@ export class CreatePartDto {
 
   @IsNotEmpty()
   translations: {
-    en: { name: string; shortDescription?: string; description?: string };
-    ru: { name: string; shortDescription?: string; description?: string };
+    en: { name: string };
+    ru: { name: string };
   };
-
-  @IsString()
-  @IsNotEmpty()
-  visibilityInCatalog: string;
-  
-  @IsString()
-  @IsOptional()
-  translationGroup?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  inStock?: boolean;
 
   @IsArray()
   @IsOptional()
@@ -39,13 +27,9 @@ export class CreatePartDto {
   @IsOptional()
   oem?: string[];
 
-  @IsString()
+  @IsArray()
   @IsOptional()
-  years?: string;
-
-  @IsNumber()
-  @IsNotEmpty()
-  price: number;
+  years?: string[];
 
   @IsString()
   @IsOptional()

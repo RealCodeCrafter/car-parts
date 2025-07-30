@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsArray, IsNumber } from 'class-validator';
+import { IsString, IsOptional, IsArray } from 'class-validator';
 
 export class UpdatePartDto {
   @IsString()
@@ -7,21 +7,9 @@ export class UpdatePartDto {
 
   @IsOptional()
   translations?: {
-    en: { name?: string; shortDescription?: string; description?: string };
-    ru: { name?: string; shortDescription?: string; description?: string };
+    en: { name?: string };
+    ru: { name?: string };
   };
-
-  @IsString()
-  @IsOptional()
-  visibilityInCatalog?: string;
-
-  @IsString()
-  @IsOptional()
-  translationGroup?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  inStock?: boolean;
 
   @IsArray()
   @IsOptional()
@@ -39,13 +27,9 @@ export class UpdatePartDto {
   @IsOptional()
   oem?: string[];
 
-  @IsString()
+  @IsArray()
   @IsOptional()
-  years?: string;
-
-  @IsNumber()
-  @IsOptional()
-  price?: number;
+  years?: string[];
 
   @IsString()
   @IsOptional()

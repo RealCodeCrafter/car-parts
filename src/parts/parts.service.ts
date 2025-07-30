@@ -9,7 +9,6 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class PartsService {
@@ -18,7 +17,6 @@ export class PartsService {
     private readonly partsRepository: Repository<Part>,
     @InjectRepository(Category)
     private readonly categoriesRepository: Repository<Category>,
-    private readonly i18n: I18nService,
   ) {
     const uploadDir = join(__dirname, '..', 'Uploads');
     if (!existsSync(uploadDir)) {
@@ -28,21 +26,19 @@ export class PartsService {
 
   async handleFileUpload(file: Express.Multer.File) {
     if (!file) {
-      throw new BadRequestException(await this.i18n.translate('parts.image_not_uploaded'));
+      throw new BadRequestException('Rasm yuklanmadi');
     }
     const fileUrl = `https://car-parts-1.onrender.com/products/uploads/${file.filename}`;
-    return { message: await this.i18n.translate('parts.image_uploaded'), fileUrl };
+    return { message: 'Rasm muvaffaqiyatli yuklandi', fileUrl };
   }
 
-  async create(createPartDto: CreatePartDto, lang: string = 'en') {
+  async create(createPartDto: CreatePartDto) {
     const existingPart = await this.partsRepository.findOne({
       where: { trtCode: createPartDto.trtCode },
     });
 
     if (existingPart) {
-      throw new BadRequestException(
-        await this.i18n.translate('parts.part_exists', { args: { trtCode: createPartDto.trtCode } }),
-      );
+      throw new BadRequestException(`TRT kodi ${createPartDto.trtCode} bilan qism allaqachon mavjud`);
     }
 
     const categories = createPartDto.categories
@@ -50,7 +46,7 @@ export class PartsService {
       : [];
 
     if (createPartDto.categories && (!categories || categories.length === 0)) {
-      throw new NotFoundException(await this.i18n.translate('parts.category_not_found'));
+      throw new NotFoundException('Kategoriya topilmadi');
     }
 
     const part = this.partsRepository.create({
@@ -59,139 +55,109 @@ export class PartsService {
     });
 
     const savedPart = await this.partsRepository.save(part);
+
     return {
       id: savedPart.id,
       sku: savedPart.sku,
-      name: savedPart.translations[lang]?.name || savedPart.translations.en.name,
-      shortDescription: savedPart.translations[lang]?.shortDescription || savedPart.translations.en.shortDescription,
-      description: savedPart.translations[lang]?.description || savedPart.translations.en.description,
-      visibilityInCatalog: savedPart.visibilityInCatalog,
-      translationGroup: savedPart.translationGroup,
-      inStock: savedPart.inStock,
+      translations: savedPart.translations,
       images: savedPart.images,
       carName: savedPart.carName,
       model: savedPart.model,
       oem: savedPart.oem,
       years: savedPart.years,
-      price: savedPart.price,
       imageUrl: savedPart.imageUrl,
       trtCode: savedPart.trtCode,
       brand: savedPart.brand,
       categories: savedPart.categories.map(category => ({
         id: category.id,
-        name: category.translations[lang]?.name || category.translations.en.name,
-        description: category.translations[lang]?.description || category.translations.en.description,
+        translations: category.translations,
         imageUrl: category.imageUrl,
       })),
     };
   }
 
-  async findAll(lang: string = 'en') {
+  async findAll() {
     const parts = await this.partsRepository.find({
       relations: ['categories'],
       order: { id: 'ASC' },
     });
 
     if (!parts.length) {
-      throw new NotFoundException(await this.i18n.translate('parts.no_parts'));
+      throw new NotFoundException('Hech qanday qism topilmadi');
     }
 
     return parts.map(part => ({
       id: part.id,
       sku: part.sku,
-      name: part.translations[lang]?.name || part.translations.en.name,
-      shortDescription: part.translations[lang]?.shortDescription || part.translations.en.shortDescription,
-      description: part.translations[lang]?.description || part.translations.en.description,
-      visibilityInCatalog: part.visibilityInCatalog,
-      inStock: part.inStock,
+      translations: part.translations,
       images: part.images,
       carName: part.carName,
       model: part.model,
       oem: part.oem,
       years: part.years,
-      price: part.price,
       imageUrl: part.imageUrl,
       trtCode: part.trtCode,
       brand: part.brand,
       categories: part.categories.map(category => ({
         id: category.id,
-        name: category.translations[lang]?.name || category.translations.en.name,
-        description: category.translations[lang]?.description || category.translations.en.description,
+        translations: category.translations,
         imageUrl: category.imageUrl,
       })),
     }));
   }
 
-  async findOne(id: number, lang: string = 'en') {
+  async findOne(id: number) {
     const part = await this.partsRepository.findOne({ where: { id }, relations: ['categories'] });
     if (!part) {
-      throw new NotFoundException(
-        await this.i18n.translate('parts.part_not_found', { args: { id } }),
-      );
+      throw new NotFoundException(`ID ${id} bilan qism topilmadi`);
     }
     return {
       id: part.id,
       sku: part.sku,
-      name: part.translations[lang]?.name || part.translations.en.name,
-      shortDescription: part.translations[lang]?.shortDescription || part.translations.en.shortDescription,
-      description: part.translations[lang]?.description || part.translations.en.description,
-      visibilityInCatalog: part.visibilityInCatalog,
-      inStock: part.inStock,
+      translations: part.translations,
       images: part.images,
       carName: part.carName,
       model: part.model,
       oem: part.oem,
       years: part.years,
-      price: part.price,
       imageUrl: part.imageUrl,
       trtCode: part.trtCode,
       brand: part.brand,
       categories: part.categories.map(category => ({
         id: category.id,
-        name: category.translations[lang]?.name || category.translations.en.name,
-        description: category.translations[lang]?.description || category.translations.en.description,
+        translations: category.translations,
         imageUrl: category.imageUrl,
       })),
     };
   }
 
-  async update(id: number, updatePartDto: UpdatePartDto, lang: string = 'en') {
+  async update(id: number, updatePartDto: UpdatePartDto) {
     const part = await this.partsRepository.findOne({
       where: { id },
       relations: ['categories'],
     });
 
     if (!part) {
-      throw new NotFoundException(
-        await this.i18n.translate('parts.part_not_found', { args: { id } }),
-      );
+      throw new NotFoundException(`ID ${id} bilan qism topilmadi`);
     }
 
     if (updatePartDto.translations) {
       part.translations = {
         en: {
           name: updatePartDto.translations.en?.name || part.translations.en.name,
-          shortDescription: updatePartDto.translations.en?.shortDescription || part.translations.en.shortDescription,
-          description: updatePartDto.translations.en?.description || part.translations.en.description,
         },
         ru: {
           name: updatePartDto.translations.ru?.name || part.translations.ru.name,
-          shortDescription: updatePartDto.translations.ru?.shortDescription || part.translations.ru.shortDescription,
-          description: updatePartDto.translations.ru?.description || part.translations.ru.description,
         },
       };
     }
 
     part.sku = updatePartDto.sku || part.sku;
-    part.visibilityInCatalog = updatePartDto.visibilityInCatalog || part.visibilityInCatalog;
-    part.translationGroup = updatePartDto.translationGroup || part.translationGroup;
-    part.inStock = updatePartDto.inStock ?? part.inStock;
     part.images = updatePartDto.images || part.images;
     part.carName = updatePartDto.carName || part.carName;
     part.model = updatePartDto.model || part.model;
     part.oem = updatePartDto.oem || part.oem;
     part.years = updatePartDto.years || part.years;
-    part.price = updatePartDto.price ?? part.price;
     part.imageUrl = updatePartDto.imageUrl || part.imageUrl;
     part.trtCode = updatePartDto.trtCode || part.trtCode;
     part.brand = updatePartDto.brand || part.brand;
@@ -204,25 +170,18 @@ export class PartsService {
     return {
       id: updatedPart.id,
       sku: updatedPart.sku,
-      name: updatedPart.translations[lang]?.name || updatedPart.translations.en.name,
-      shortDescription: updatedPart.translations[lang]?.shortDescription || updatedPart.translations.en.shortDescription,
-      description: updatedPart.translations[lang]?.description || updatedPart.translations.en.description,
-      visibilityInCatalog: updatedPart.visibilityInCatalog,
-      translationGroup: updatedPart.translationGroup,
-      inStock: updatedPart.inStock,
+      translations: updatedPart.translations,
       images: updatedPart.images,
       carName: updatedPart.carName,
       model: updatedPart.model,
       oem: updatedPart.oem,
       years: updatedPart.years,
-      price: updatedPart.price,
       imageUrl: updatedPart.imageUrl,
       trtCode: updatedPart.trtCode,
       brand: updatedPart.brand,
       categories: updatedPart.categories.map(category => ({
         id: category.id,
-        name: category.translations[lang]?.name || category.translations.en.name,
-        description: category.translations[lang]?.description || category.translations.en.description,
+        translations: category.translations,
         imageUrl: category.imageUrl,
       })),
     };
@@ -231,46 +190,37 @@ export class PartsService {
   async remove(id: number) {
     const existingPart = await this.partsRepository.findOne({ where: { id } });
     if (!existingPart) {
-      throw new NotFoundException(
-        await this.i18n.translate('parts.part_not_found', { args: { id } }),
-      );
+      throw new NotFoundException(`ID ${id} bilan qism topilmadi`);
     }
     await this.partsRepository.delete(id);
-    return { message: await this.i18n.translate('parts.part_delete_success') };
+    return { message: 'Qism muvaffaqiyatli o‘chirildi' };
   }
 
-  async getPartsByCategory(categoryId: number, lang: string = 'en') {
+  async getPartsByCategory(categoryId: number) {
     const category = await this.categoriesRepository.findOne({
       where: { id: categoryId },
       relations: ['parts'],
     });
 
     if (!category) {
-      throw new NotFoundException(await this.i18n.translate('parts.category_not_found'));
+      throw new NotFoundException('Kategoriya topilmadi');
     }
 
     return {
       category: {
         id: category.id,
-        name: category.translations[lang]?.name || category.translations.en.name,
-        description: category.translations[lang]?.description || category.translations.en.description,
+        translations: category.translations,
         imageUrl: category.imageUrl,
       },
       parts: category.parts.map(part => ({
         id: part.id,
         sku: part.sku,
-        name: part.translations[lang]?.name || part.translations.en.name,
-        shortDescription: part.translations[lang]?.shortDescription || part.translations.en.shortDescription,
-        description: part.translations[lang]?.description || part.translations.en.description,
-        visibilityInCatalog: part.visibilityInCatalog,
-        translationGroup: part.translationGroup,
-        inStock: part.inStock,
+        translations: part.translations,
         images: part.images,
         carName: part.carName,
         model: part.model,
         oem: part.oem,
         years: part.years,
-        price: part.price,
         imageUrl: part.imageUrl,
         trtCode: part.trtCode,
         brand: part.brand,
@@ -314,7 +264,7 @@ export class PartsService {
     return models.map((model) => model.model).filter(Boolean);
   }
 
-  async search(oem: string, trt: string, brand: string, model: string, lang: string = 'en') {
+  async search(oem: string, trt: string, brand: string, model: string) {
     const queryBuilder = this.partsRepository.createQueryBuilder('part');
 
     if (oem) queryBuilder.andWhere('LOWER(part.oem) = LOWER(:oem)', { oem: oem.toLowerCase() });
@@ -326,44 +276,36 @@ export class PartsService {
     return parts.map(part => ({
       id: part.id,
       sku: part.sku,
-      name: part.translations[lang]?.name || part.translations.en.name,
-      shortDescription: part.translations[lang]?.shortDescription || part.translations.en.shortDescription,
-      description: part.translations[lang]?.description || part.translations.en.description,
-      visibilityInCatalog: part.visibilityInCatalog,
-      translationGroup: part.translationGroup,
-      inStock: part.inStock,
+      translations: part.translations,
       images: part.images,
       carName: part.carName,
       model: part.model,
       oem: part.oem,
       years: part.years,
-      price: part.price,
       imageUrl: part.imageUrl,
       trtCode: part.trtCode,
       brand: part.brand,
       categories: part.categories.map(category => ({
         id: category.id,
-        name: category.translations[lang]?.name || category.translations.en.name,
-        description: category.translations[lang]?.description || category.translations.en.description,
+        translations: category.translations,
         imageUrl: category.imageUrl,
       })),
     }));
   }
 
-  async getCategories(lang: string = 'en') {
+  async getCategories() {
     const categories = await this.categoriesRepository.find();
     if (categories.length === 0) {
-      throw new NotFoundException(await this.i18n.translate('parts.no_categories'));
+      throw new NotFoundException('Kategoriyalar topilmadi');
     }
     return categories.map(category => ({
       id: category.id,
-      name: category.translations[lang]?.name || category.translations.en.name,
-      description: category.translations[lang]?.description || category.translations.en.description,
+      translations: category.translations,
       imageUrl: category.imageUrl,
     }));
   }
 
-  async searchByName(name: string, lang: string = 'en') {
+  async searchByName(name: string) {
     const parts = await this.partsRepository
       .createQueryBuilder('part')
       .where('LOWER(part.translations->>\'en\'->>\'name\') LIKE LOWER(:name) OR LOWER(part.translations->>\'ru\'->>\'name\') LIKE LOWER(:name)', {
@@ -372,33 +314,24 @@ export class PartsService {
       .getMany();
 
     if (parts.length === 0) {
-      throw new NotFoundException(
-        await this.i18n.translate('parts.part_not_found', { args: { id: name } }),
-      );
+      throw new NotFoundException(`Nomi ${name} bilan qism topilmadi`);
     }
 
     return parts.map(part => ({
       id: part.id,
       sku: part.sku,
-      name: part.translations[lang]?.name || part.translations.en.name,
-      shortDescription: part.translations[lang]?.shortDescription || part.translations.en.shortDescription,
-      description: part.translations[lang]?.description || part.translations.en.description,
-      visibilityInCatalog: part.visibilityInCatalog,
-      translationGroup: part.translationGroup,
-      inStock: part.inStock,
+      translations: part.translations,
       images: part.images,
       carName: part.carName,
       model: part.model,
       oem: part.oem,
       years: part.years,
-      price: part.price,
       imageUrl: part.imageUrl,
       trtCode: part.trtCode,
       brand: part.brand,
       categories: part.categories.map(category => ({
         id: category.id,
-        name: category.translations[lang]?.name || category.translations.en.name,
-        description: category.translations[lang]?.description || category.translations.en.description,
+        translations: category.translations,
         imageUrl: category.imageUrl,
       })),
     }));
@@ -417,6 +350,6 @@ export class PartsService {
     if (fs.existsSync(imagePath)) {
       return imagePath;
     }
-    throw new NotFoundException(await this.i18n.translate('parts.image_not_found'));
+    throw new NotFoundException('Rasm topilmadi');
   }
 }

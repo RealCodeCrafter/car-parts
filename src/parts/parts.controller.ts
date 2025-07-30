@@ -6,25 +6,24 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { Response } from 'express';
-import { I18n, I18nContext } from 'nestjs-i18n';
 
 @Controller('products')
 export class PartsController {
   constructor(private readonly partsService: PartsService) {}
 
   @Post()
-  async create(@Body() createPartDto: CreatePartDto, @I18n() i18n: I18nContext) {
-    return await this.partsService.create(createPartDto, i18n.lang);
+  async create(@Body() createPartDto: CreatePartDto) {
+    return await this.partsService.create(createPartDto);
   }
 
   @Get('all')
-  async findAll(@I18n() i18n: I18nContext) {
-    return await this.partsService.findAll(i18n.lang);
+  async findAll() {
+    return await this.partsService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string, @I18n() i18n: I18nContext) {
-    return await this.partsService.findOne(+id, i18n.lang);
+  async findOne(@Param('id') id: string) {
+    return await this.partsService.findOne(+id);
   }
 
   @Post('upload')
@@ -39,13 +38,13 @@ export class PartsController {
       }),
     }),
   )
-  async uploadFile(@UploadedFile() file: Express.Multer.File, @I18n() I18n: I18nContext) {
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
     return await this.partsService.handleFileUpload(file);
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updatePartDto: UpdatePartDto, @I18n() i18n: I18nContext) {
-    return await this.partsService.update(+id, updatePartDto, i18n.lang);
+  async update(@Param('id') id: string, @Body() updatePartDto: UpdatePartDto) {
+    return await this.partsService.update(+id, updatePartDto);
   }
 
   @Delete(':id')
@@ -79,14 +78,13 @@ export class PartsController {
     @Query('trt') trt: string,
     @Query('brand') brand: string,
     @Query('model') model: string,
-    @I18n() i18n: I18nContext,
   ) {
-    return await this.partsService.search(oem, trt, brand, model, i18n.lang);
+    return await this.partsService.search(oem, trt, brand, model);
   }
 
   @Get('part/category/:categoryId')
-  async getPartsByCategory(@Param('categoryId') categoryId: string, @I18n() i18n: I18nContext) {
-    return await this.partsService.getPartsByCategory(+categoryId, i18n.lang);
+  async getPartsByCategory(@Param('categoryId') categoryId: string) {
+    return await this.partsService.getPartsByCategory(+categoryId);
   }
 
   @Get('uploads/:imageName')
@@ -100,13 +98,13 @@ export class PartsController {
   }
 
   @Get('parts/categories')
-  async getCategories(@I18n() i18n: I18nContext) {
-    return await this.partsService.getCategories(i18n.lang);
+  async getCategories() {
+    return await this.partsService.getCategories();
   }
 
   @Get()
-  async searchByName(@Query('value') name: string, @I18n() i18n: I18nContext) {
-    return await this.partsService.searchByName(name, i18n.lang);
+  async searchByName(@Query('value') name: string) {
+    return await this.partsService.searchByName(name);
   }
 
   @Get('all/count')

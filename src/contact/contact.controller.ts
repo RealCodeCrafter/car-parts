@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Headers } from '@nestjs/common';
+import { Controller, Post, Body, Get } from '@nestjs/common';
 import { ContactService } from './contact.service';
 import { CreateContactDto } from './dto/create-contact.dto';
 
@@ -7,15 +7,12 @@ export class ContactController {
   constructor(private readonly contactService: ContactService) {}
 
   @Post()
-  async sendMessage(
-    @Body() createContactDto: CreateContactDto,
-    @Headers('accept-language') lang: string = 'en',
-  ) {
-    return await this.contactService.sendMessage(createContactDto, lang);
+  async sendMessage(@Body() createContactDto: CreateContactDto) {
+    return await this.contactService.sendMessage(createContactDto);
   }
 
   @Get()
-  async getContactInfo(@Headers('accept-language') lang: string = 'en') {
-    return await this.contactService.getContactInfo(lang);
+  async getContactInfo() {
+    return await this.contactService.getContactInfo();
   }
 }

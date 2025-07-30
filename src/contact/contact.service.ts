@@ -1,56 +1,10 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateContactDto } from './dto/create-contact.dto';
 import * as nodemailer from 'nodemailer';
-import * as fs from 'fs';
-import * as path from 'path';
 
 @Injectable()
 export class ContactService {
-  private translations: { [key: string]: any } = {};
-
-  constructor() {
-    this.loadTranslations();
-  }
-
-  private loadTranslations() {
-    const i18nPath = path.join('./src/i18n');
-
-    try {
-      const files = fs.readdirSync(i18nPath);
-
-      for (const file of files) {
-        if (file.endsWith('.json')) {
-          const lang = file.replace('.json', '');
-          const filePath = path.join(i18nPath, file);
-          const data = fs.readFileSync(filePath, 'utf8');
-          this.translations[lang] = JSON.parse(data);
-        }
-      }
-    } catch (error) {
-      throw new InternalServerErrorException('Failed to load translations');
-    }
-  }
-
-  private getTranslation(key: string, lang: string): string {
-    const keys = key.split('.');
-    let current = this.translations[lang] || this.translations['en'] || {};
-    for (const k of keys) {
-      current = current[k] || {};
-    }
-    return typeof current === 'string' ? current : key;
-  }
-
-  async sendMessage(createContactDto: CreateContactDto, lang: string = 'en') {
-    const translations = {
-      email_subject: this.getTranslation('contact.email_subject', lang),
-      name_label: this.getTranslation('contact.name_label', lang),
-      phone_label: this.getTranslation('contact.phone_label_form', lang),
-      comment_label: this.getTranslation('contact.comment_label', lang),
-      message_sent: this.getTranslation('contact.message_sent', lang),
-      message_error: this.getTranslation('contact.message_error', lang),
-      test: this.getTranslation('test.hello', lang),
-    };
-
+  async sendMessage(createContactDto: CreateContactDto) {
     try {
       const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -63,40 +17,36 @@ export class ContactService {
       const mailOptions = {
         from: 'sales@trt-parts.com',
         to: 'reyimbergenovvali702@gmail.com',
-        subject: translations.email_subject,
+        subject: 'Yangi xabar',
         text: `
-          ${translations.name_label}: ${createContactDto.name}
-          ${translations.phone_label}: ${createContactDto.phone}
-          ${translations.comment_label}: ${createContactDto.comment}
+          Ism: ${createContactDto.name}
+          Telefon: ${createContactDto.phone}
+          Izoh: ${createContactDto.comment}
         `,
       };
 
       await transporter.sendMail(mailOptions);
-      return { message: translations.message_sent };
+      return { message: 'Xabar muvaffaqiyatli yuborildi' };
     } catch (error) {
-      throw new InternalServerErrorException(translations.message_error);
+      throw new InternalServerErrorException('Xabar yuborishda xatolik yuz berdi');
     }
   }
 
-  async getContactInfo(lang: string = 'en') {
-    console.log('Fetching contact info with language:', lang);
-
-    const translations = {
-      title: this.getTranslation('contact.title', lang),
-      contacts: this.getTranslation('contact.contacts', lang),
-      description: this.getTranslation('contact.description', lang),
-      phone_label: this.getTranslation('contact.phone_label', lang),
-      phone: this.getTranslation('contact.phone', lang),
-      email: this.getTranslation('contact.email', lang),
-      address: this.getTranslation('contact.address', lang),
-      form_title: this.getTranslation('contact.form_title', lang),
-      name_label: this.getTranslation('contact.name_label', lang),
-      phone_label_form: this.getTranslation('contact.phone_label_form', lang),
-      comment_label: this.getTranslation('contact.comment_label', lang),
-      submit_button: this.getTranslation('contact.submit_button', lang),
-      data_processing_consent: this.getTranslation('contact.data_processing_consent', lang),
-      test: this.getTranslation('test.hello', lang),
+  async getContactInfo() {
+    return {
+      title: 'Biz bilan bog‘lanish',
+      contacts: 'Kontaktlar',
+      description: 'Biz bilan bog‘lanish uchun quyidagi ma’lumotlarni ishlating',
+      phone_label: 'Telefon',
+      phone: '+998901234567',
+      email: 'contact@trt-parts.com',
+      address: 'Toshkent, Chilanzar, 45-uy',
+      form_title: 'Xabar yuborish',
+      name_label: 'Ism',
+      phone_label_form: 'Telefon raqami',
+      comment_label: 'Izoh',
+      submit_button: 'Yuborish',
+      data_processing_consent: 'Ma’lumotlarimni qayta ishlashga roziman',
     };
-    return translations;
   }
 }

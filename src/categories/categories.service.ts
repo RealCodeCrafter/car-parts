@@ -1,11 +1,10 @@
-import { Injectable, NotFoundException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Category } from './entities/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Part } from '../parts/entities/part.entity';
-import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class CategoryService {
@@ -14,10 +13,9 @@ export class CategoryService {
     private readonly categoryRepository: Repository<Category>,
     @InjectRepository(Part)
     private readonly partRepository: Repository<Part>,
-    private readonly i18n: I18nService,
   ) {}
 
-  async create(createCategoryDto: CreateCategoryDto, lang: string = 'en') {
+  async create(createCategoryDto: CreateCategoryDto) {
     const { translations, imageUrl, parts } = createCategoryDto;
 
     const existingCategory = await this.categoryRepository
@@ -28,9 +26,7 @@ export class CategoryService {
       .getOne();
 
     if (existingCategory) {
-      throw new BadRequestException(
-        await this.i18n.translate('categories.category_exists', { args: { name: translations.en.name } }),
-      );
+      throw new BadRequestException(`Kategoriya ${translations.en.name} nomi bilan allaqachon mavjud`);
     }
 
     const category = this.categoryRepository.create({
@@ -40,51 +36,45 @@ export class CategoryService {
     });
 
     const savedCategory = await this.categoryRepository.save(category);
+
     return {
       id: savedCategory.id,
-      name: savedCategory.translations[lang]?.name || savedCategory.translations.en.name,
-      description: savedCategory.translations[lang]?.description || savedCategory.translations.en.description,
+      translations: savedCategory.translations,
       imageUrl: savedCategory.imageUrl,
       parts: savedCategory.parts,
     };
   }
 
-  async findAll(lang: string = 'en') {
+  async findAll() {
     const categories = await this.categoryRepository.find();
     if (!categories.length) {
-      throw new NotFoundException(await this.i18n.translate('categories.no_categories'));
+      throw new NotFoundException('Hech qanday kategoriya topilmadi');
     }
     return categories.map(category => ({
       id: category.id,
-      name: category.translations[lang]?.name || category.translations.en.name,
-      description: category.translations[lang]?.description || category.translations.en.description,
+      translations: category.translations,
       imageUrl: category.imageUrl,
       parts: category.parts,
     }));
   }
 
-  async findOne(id: number, lang: string = 'en') {
+  async findOne(id: number) {
     const category = await this.categoryRepository.findOne({ where: { id }, relations: ['parts'] });
     if (!category) {
-      throw new NotFoundException(
-        await this.i18n.translate('categories.category_not_found', { args: { id } }),
-      );
+      throw new NotFoundException(`ID ${id} bilan kategoriya topilmadi`);
     }
     return {
       id: category.id,
-      name: category.translations[lang]?.name || category.translations.en.name,
-      description: category.translations[lang]?.description || category.translations.en.description,
+      translations: category.translations,
       imageUrl: category.imageUrl,
       parts: category.parts,
     };
   }
 
-  async updateCategory(id: number, updateCategoryDto: UpdateCategoryDto, lang: string = 'en') {
+  async updateCategory(id: number, updateCategoryDto: UpdateCategoryDto) {
     const category = await this.categoryRepository.findOne({ where: { id } });
     if (!category) {
-      throw new NotFoundException(
-        await this.i18n.translate('categories.category_not_found', { args: { id } }),
-      );
+      throw new NotFoundException(`ID ${id} bilan kategoriya topilmadi`);
     }
 
     if (updateCategoryDto.translations) {
@@ -97,11 +87,7 @@ export class CategoryService {
         .getOne();
 
       if (existingCategory) {
-        throw new BadRequestException(
-          await this.i18n.translate('categories.category_name_exists', {
-            args: { name: updateCategoryDto.translations.en?.name || category.translations.en.name },
-          }),
-        );
+        throw new BadRequestException(`Kategoriya ${updateCategoryDto.translations.en?.name || category.translations.en.name} nomi bilan allaqachon mavjud`);
       }
 
       category.translations = {
@@ -127,34 +113,35 @@ export class CategoryService {
     const updatedCategory = await this.categoryRepository.save(category);
     return {
       id: updatedCategory.id,
-      name: updatedCategory.translations[lang]?.name || updatedCategory.translations.en.name,
-      description: updatedCategory.translations[lang]?.description || updatedCategory.translations.en.description,
+      translations: updatedCategory.translations,
       imageUrl: updatedCategory.imageUrl,
       parts: updatedCategory.parts,
     };
   }
-async remove(id: number) {
-  const category = await this.categoryRepository.findOne({
-    where: { id },
-    relations: ['parts'], // ManyToMany aloqani chaqiryapmiz
-  });
 
-  if (!category) {
-    throw new NotFoundException(
-      await this.i18n.translate('categories.category_not_found', { args: { id } }),
-    );
+  async remove(id: number) {
+    const category = await this.categoryRepository.findOne({
+      where: { id },
+      relations: ['parts', 'parts.categories'],
+    });
+
+    if (!category) {
+      throw new NotFoundException(`ID ${id} bilan kategoriya topilmadi`);
+    }
+
+    if (category.parts?.length) {
+      for (const part of category.parts) {
+        if (part.categories) {
+          part.categories = part.categories.filter((c) => c.id !== id);
+          await this.partRepository.save(part);
+        }
+      }
+    }
+
+    await this.categoryRepository.remove(category);
+
+    return {
+      message: 'Kategoriya muvaffaqiyatli o‘chirildi',
+    };
   }
-
-  for (const part of category.parts) {
-    part.categories = part.categories.filter((c) => c.id !== id);
-    await this.partRepository.save(part);
-  }
-
-  await this.categoryRepository.remove(category);
-
-  return {
-    message: await this.i18n.translate('categories.category_delete_success'),
-  };
-}
-
 }

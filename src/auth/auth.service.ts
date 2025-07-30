@@ -5,7 +5,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/auth.entity';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-auth.dto';
-import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class AuthService {
@@ -13,13 +12,12 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
-    private readonly i18n: I18nService,
   ) {}
 
-  async register(createUserDto: CreateUserDto, lang: string = 'en') {
+  async register(createUserDto: CreateUserDto) {
     const existingUser = await this.userRepository.findOne({ where: { username: createUserDto.username } });
     if (existingUser) {
-      throw new BadRequestException(await this.i18n.translate('auth.user_exists', { lang }));
+      throw new BadRequestException('Foydalanuvchi allaqachon mavjud');
     }
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -39,19 +37,19 @@ export class AuthService {
         email: savedUser.email,
         role: savedUser.role,
       },
-      message: await this.i18n.translate('auth.register_success', { lang }),
+      message: 'Foydalanuvchi muvaffaqiyatli ro‘yxatdan o‘tdi',
     };
   }
 
-  async login(username: string, password: string, lang: string = 'en') {
+  async login(username: string, password: string) {
     const user = await this.userRepository.findOne({ where: { username } });
     if (!user) {
-      throw new UnauthorizedException(await this.i18n.translate('auth.user_not_found', { lang }));
+      throw new UnauthorizedException('Foydalanuvchi topilmadi');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException(await this.i18n.translate('auth.invalid_password', { lang }));
+      throw new UnauthorizedException('Parol noto‘g‘ri');
     }
 
     const payload = { id: user.id, username: user.username, role: user.role };
@@ -63,14 +61,14 @@ export class AuthService {
         email: user.email,
         role: user.role,
       },
-      message: await this.i18n.translate('auth.login_success', { lang }),
+      message: 'Kirish muvaffaqiyatli amalga oshirildi',
     };
   }
 
-  async addAdmin(createUserDto: CreateUserDto, lang: string = 'en') {
+  async addAdmin(createUserDto: CreateUserDto) {
     const existingAdmin = await this.userRepository.findOne({ where: { username: createUserDto.username, role: 'admin' } });
     if (existingAdmin) {
-      throw new BadRequestException(await this.i18n.translate('auth.admin_exists', { lang }));
+      throw new BadRequestException('Admin allaqachon mavjud');
     }
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -86,7 +84,7 @@ export class AuthService {
       username: savedAdmin.username,
       email: savedAdmin.email,
       role: savedAdmin.role,
-      message: await this.i18n.translate('auth.admin_success', { lang }),
+      message: 'Admin muvaffaqiyatli qo‘shildi',
     };
   }
 }

@@ -11,18 +11,9 @@ export class Part {
 
   @Column({ type: 'jsonb', default: {} })
   translations: {
-    en: { name: string; shortDescription?: string; description?: string };
-    ru: { name: string; shortDescription?: string; description?: string };
+    en: { name: string };
+    ru: { name: string };
   };
-
-  @Column()
-  visibilityInCatalog: string;
-
-  @Column({ nullable: true })
-  translationGroup?: string;
-
-  @Column({ default: true })
-  inStock: boolean;
 
   @Column('text', { array: true, nullable: true })
   images?: string[];
@@ -36,11 +27,8 @@ export class Part {
   @Column('text', { array: true, nullable: true })
   oem?: string[];
 
-  @Column({ nullable: true })
-  years?: string;
-
-  @Column('float')
-  price: number;
+  @Column('text', { array: true, nullable: true })
+  years?: string[];
 
   @Column({ nullable: true })
   imageUrl?: string;
