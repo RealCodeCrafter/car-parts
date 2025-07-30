@@ -133,16 +133,28 @@ export class CategoryService {
       parts: updatedCategory.parts,
     };
   }
+async remove(id: number) {
+  const category = await this.categoryRepository.findOne({
+    where: { id },
+    relations: ['parts'], // ManyToMany aloqani chaqiryapmiz
+  });
 
-  async remove(id: number) {
-    const category = await this.categoryRepository.findOne({ where: { id } });
-    if (!category) {
-      throw new NotFoundException(
-        await this.i18n.translate('categories.category_not_found', { args: { id } }),
-      );
-    }
-
-    await this.categoryRepository.delete(id);
-    return { message: await this.i18n.translate('categories.category_delete_success') };
+  if (!category) {
+    throw new NotFoundException(
+      await this.i18n.translate('categories.category_not_found', { args: { id } }),
+    );
   }
+
+  for (const part of category.parts) {
+    part.categories = part.categories.filter((c) => c.id !== id);
+    await this.partRepository.save(part);
+  }
+
+  await this.categoryRepository.remove(category);
+
+  return {
+    message: await this.i18n.translate('categories.category_delete_success'),
+  };
+}
+
 }
