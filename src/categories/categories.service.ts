@@ -50,7 +50,7 @@ export class CategoryService {
   }
 
   async findAll(lang: string = 'en') {
-    const categories = await this.categoryRepository.find({ relations: ['parts'] });
+    const categories = await this.categoryRepository.find();
     if (!categories.length) {
       throw new NotFoundException(await this.i18n.translate('categories.no_categories'));
     }

@@ -6,7 +6,3 @@ export class AppService {
     return 'Hello World!';
   }
 }
-
-
-
-"wIN4RPOJDLTQ9Qo14AJlvQ"
