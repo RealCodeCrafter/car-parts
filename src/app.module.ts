@@ -41,17 +41,16 @@ import { ContactModule } from './contact/contact.module';
       },
     }),
     I18nModule.forRoot({
-      fallbackLanguage: 'en',
-      loader: I18nJsonLoader,
-      loaderOptions: {
-        path: path.join(__dirname, '../src/i18n'),
-        watch: true,
-      },
-      resolvers: [
-        AcceptLanguageResolver,
-        { use: QueryResolver, options: ['lang'] },
-        { use: HeaderResolver, options: ['accept-language'] },
-      ],
+  fallbackLanguage: 'en',
+  loader: I18nJsonLoader,
+  loaderOptions: {
+    path: path.join(__dirname, '../src/i18n'),
+    watch: true,
+  },
+  resolvers: [
+    { use: QueryResolver, options: ['lang'] },
+    { use: HeaderResolver, options: ['accept-language'] },
+  ],
     }),
     PartsModule,
     AuthModule,

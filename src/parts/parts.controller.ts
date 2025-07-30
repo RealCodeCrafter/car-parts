@@ -39,7 +39,7 @@ export class PartsController {
       }),
     }),
   )
-  async uploadFile(@UploadedFile() file: Express.Multer.File, @I18n() i18n: I18nContext) {
+  async uploadFile(@UploadedFile() file: Express.Multer.File, @I18n() I18n: I18nContext) {
     return await this.partsService.handleFileUpload(file);
   }
 
