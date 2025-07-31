@@ -90,7 +90,6 @@ export class PartsController {
   @Get('uploads/:imageName')
   async getImage(@Param('imageName') imageName: string, @Res() res: Response) {
     const imagePath = await this.partsService.getImagePath(imageName);
-
     if (imagePath) {
       return res.sendFile(imagePath);
     }

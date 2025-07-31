@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Part } from './entities/part.entity';
@@ -231,17 +231,16 @@ export class PartsService {
   async getAllOem() {
     const distinctOems = await this.partsRepository
       .createQueryBuilder('part')
-      .select('DISTINCT part.oem')
+      .select('DISTINCT unnest(part.oem) as oem')
       .getRawMany();
-
-    return distinctOems.map((oem) => oem.oem).filter(Boolean);
+    return distinctOems.map((row) => row.oem).filter(Boolean);
   }
 
   async getOemId(oem: string) {
     const trts = await this.partsRepository
       .createQueryBuilder('part')
       .select('DISTINCT part.trtCode')
-      .where('part.oem = :oem', { oem })
+      .where(':oem = ANY(part.oem)', { oem })
       .getRawMany();
     return trts.map((trt) => trt.trtCode);
   }
@@ -258,21 +257,39 @@ export class PartsService {
   async getBrand(brand: string) {
     const models = await this.partsRepository
       .createQueryBuilder('part')
-      .select('DISTINCT part.model')
+      .select('DISTINCT unnest(part.model) as model')
       .where('part.brand = :brand', { brand })
       .getRawMany();
-    return models.map((model) => model.model).filter(Boolean);
+    return models.map((row) => row.model).filter(Boolean);
   }
 
   async search(oem: string, trt: string, brand: string, model: string) {
-    const queryBuilder = this.partsRepository.createQueryBuilder('part');
+    const queryBuilder = this.partsRepository
+      .createQueryBuilder('part')
+      .leftJoinAndSelect('part.categories', 'category');
 
-    if (oem) queryBuilder.andWhere('LOWER(part.oem) = LOWER(:oem)', { oem: oem.toLowerCase() });
-    if (trt) queryBuilder.andWhere('LOWER(part.trtCode) = LOWER(:trt)', { trt: trt.toLowerCase() });
-    if (brand) queryBuilder.andWhere('LOWER(part.brand) = LOWER(:brand)', { brand: brand.toLowerCase() });
-    if (model) queryBuilder.andWhere('LOWER(part.model) = LOWER(:model)', { model: model.toLowerCase() });
+    if (oem) {
+      queryBuilder.andWhere(':oem = ANY(LOWER(part.oem::text)::text[])', { oem: oem.toLowerCase() });
+    }
+
+    if (model) {
+      queryBuilder.andWhere(':model = ANY(LOWER(part.model::text)::text[])', { model: model.toLowerCase() });
+    }
+
+    if (trt) {
+      queryBuilder.andWhere('LOWER(part.trtCode) = :trt', { trt: trt.toLowerCase() });
+    }
+
+    if (brand) {
+      queryBuilder.andWhere('LOWER(part.brand) = :brand', { brand: brand.toLowerCase() });
+    }
 
     const parts = await queryBuilder.getMany();
+
+    if (!parts.length) {
+      throw new NotFoundException('Qismlar topilmadi');
+    }
+
     return parts.map(part => ({
       id: part.id,
       sku: part.sku,
@@ -285,7 +302,7 @@ export class PartsService {
       imageUrl: part.imageUrl,
       trtCode: part.trtCode,
       brand: part.brand,
-      categories: part.categories.map(category => ({
+      categories: (part.categories || []).map(category => ({
         id: category.id,
         translations: category.translations,
         imageUrl: category.imageUrl,
@@ -308,7 +325,8 @@ export class PartsService {
   async searchByName(name: string) {
     const parts = await this.partsRepository
       .createQueryBuilder('part')
-      .where('LOWER(part.translations->>\'en\'->>\'name\') LIKE LOWER(:name) OR LOWER(part.translations->>\'ru\'->>\'name\') LIKE LOWER(:name)', {
+      .leftJoinAndSelect('part.categories', 'category')
+      .where('LOWER(part.translations->>\'en\'->>\'name\') LIKE :name OR LOWER(part.translations->>\'ru\'->>\'name\') LIKE :name', {
         name: `%${name.toLowerCase()}%`,
       })
       .getMany();
@@ -329,7 +347,7 @@ export class PartsService {
       imageUrl: part.imageUrl,
       trtCode: part.trtCode,
       brand: part.brand,
-      categories: part.categories.map(category => ({
+      categories: (part.categories || []).map(category => ({
         id: category.id,
         translations: category.translations,
         imageUrl: category.imageUrl,
